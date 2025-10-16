@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYBER PANEL - Discord Access</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1a2e 100%);
+            color: #00ff41;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.1),
+                rgba(0, 0, 0, 0.1) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .matrix {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.05;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Login Screen */
+        .login-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 48px;
+            font-weight: bold;
+            text-shadow: 0 0 20px #00ff41, 0 0 40px #00ff41;
+            margin-bottom: 20px;
+            letter-spacing: 5px;
+            animation: glitch 3s infinite;
+        }
+
+        .subtitle {
+            color: #00aaff;
+            font-size: 18px;
+            margin-bottom: 50px;
+            text-shadow: 0 0 10px #00aaff;
+        }
+
+        .login-box {
+            background: rgba(0, 20, 40, 0.8);
+            border: 2px solid #00ff41;
+            border-radius: 12px;
+            padding: 50px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.3);
+        }
+
+        .login-icon {
+            font-size: 80px;
+            margin-bottom: 30px;
+            filter: drop-shadow(0 0 20px #5865F2);
+        }
+
+        .login-title {
+            font-size: 28px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .login-description {
+            color: #00aaff;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .discord-btn {
+            width: 100%;
+            padding: 18px;
+            background: #5865F2;
+            border: none;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .discord-btn:hover {
+            background: #4752C4;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(88, 101, 242, 0.5);
+        }
+
+        .discord-btn:active {
+            transform: translateY(-1px);
+        }
+
+        /* Main Dashboard */
+        .dashboard {
+            display: none;
+        }
+
+        .dashboard.active {
+            display: block;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 20, 40, 0.8);
+            border: 2px solid #00ff41;
+            border-radius: 12px;
+            padding: 20px 30px;
+            margin-bottom: 40px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid #00ff41;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.5);
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .user-role {
+            font-size: 14px;
+            color: #00aaff;
+        }
+
+        .logout-btn {
+            padding: 12px 25px;
+            background: rgba(255, 0, 85, 0.2);
+            border: 2px solid #ff0055;
+            color: #ff0055;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+
+        .logout-btn:hover {
+            background: #ff0055;
+            color: #fff;
+            transform: scale(1.05);
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .service-card {
+            background: rgba(0, 20, 40, 0.6);
+            border: 2px solid #00ff41;
+            border-radius: 12px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .service-card.locked {
+            opacity: 0.6;
+            border-color: #ff0055;
+        }
+
+        .service-card:not(.locked):hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 40px rgba(0, 255, 65, 0.4);
+            border-color: #00ffff;
+        }
+
+        .service-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-align: center;
+            filter: drop-shadow(0 0 10px currentColor);
+        }
+
+        .service-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .service-description {
+            color: #00aaff;
+            text-align: center;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .service-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .option-btn {
+            padding: 15px;
+            background: rgba(0, 255, 65, 0.1);
+            border: 2px solid #00ff41;
+            color: #00ff41;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .option-btn:hover {
+            background: rgba(0, 255, 65, 0.3);
+            transform: translateX(5px);
+        }
+
+        .option-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .locked-message {
+            background: rgba(255, 0, 85, 0.1);
+            border: 2px solid #ff0055;
+            border-radius: 6px;
+            padding: 15px;
+            color: #ff0055;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .discord-link {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .discord-join-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            padding: 20px 40px;
+            background: #5865F2;
+            border: none;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            text-decoration: none;
+            box-shadow: 0 5px 20px rgba(88, 101, 242, 0.3);
+        }
+
+        .discord-join-btn:hover {
+            background: #4752C4;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(88, 101, 242, 0.6);
+        }
+
+        @keyframes glitch {
+            0%, 90%, 100% { transform: translate(0); }
+            92% { transform: translate(-3px, 3px); }
+            94% { transform: translate(3px, -3px); }
+            96% { transform: translate(-3px, -3px); }
+            98% { transform: translate(3px, 3px); }
+        }
+
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 32px;
+            }
+
+            .login-box {
+                padding: 30px 20px;
+            }
+
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            .user-info {
+                flex-direction: column;
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #fff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <canvas class="matrix"></canvas>
+    <div class="scanlines"></div>
+    
+    <div class="container">
+        <!-- Login Screen -->
+        <div class="login-screen" id="loginScreen">
+            <div class="logo">◢ CYBER PANEL ◣</div>
+            <div class="subtitle">Sistema de acceso protegido</div>
+            
+            <div class="login-box">
+                <div class="login-icon">🔐</div>
+                <div class="login-title">Autenticación Requerida</div>
+                <div class="login-description">
+                    Inicia sesión con Discord para acceder al panel.<br>
+                    Se requiere un rol específico en nuestro servidor.
+                </div>
+                <button class="discord-btn" onclick="loginWithDiscord()">
+                    <span>🎮</span>
+                    <span>Iniciar sesión con Discord</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div class="dashboard" id="dashboard">
+            <div class="header">
+                <div class="user-info">
+                    <img src="https://cdn.discordapp.com/embed/avatars/0.png" alt="Avatar" class="user-avatar" id="userAvatar">
+                    <div class="user-details">
+                        <div class="user-name" id="userName">Usuario#0000</div>
+                        <div class="user-role" id="userRole">Rol: Verificando...</div>
+                    </div>
+                </div>
+                <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+            </div>
+
+            <div class="services-grid">
+                <!-- FREE Service -->
+                <div class="service-card" id="freeCard">
+                    <div class="service-icon">🎁</div>
+                    <div class="service-title">FREE</div>
+                    <div class="service-description">
+                        Servicios gratuitos disponibles
+                    </div>
+                    <div class="service-options" id="freeOptions">
+                        <!-- PERSONALIZA TUS OPCIONES AQUÍ -->
+                        <button class="option-btn" onclick="redirectTo('https://tu-enlace-1.com')">
+                            <span>▸</span> Tu texto opción 1
+                        </button>
+                        <button class="option-btn" onclick="redirectTo('https://tu-enlace-2.com')">
+                            <span>▸</span> Tu texto opción 2
+                        </button>
+                        <button class="option-btn" onclick="redirectTo('https://tu-enlace-3.com')">
+                            <span>▸</span> Tu texto opción 3
+                        </button>
+                    </div>
+                </div>
+
+                <!-- BOOSTER Service -->
+                <div class="service-card" id="boosterCard">
+                    <div class="service-icon">🚀</div>
+                    <div class="service-title">BOOSTER</div>
+                    <div class="service-description">
+                        Funciones premium de booster
+                    </div>
+                    <div class="service-options" id="boosterOptions">
+                        <!-- PERSONALIZA TUS OPCIONES AQUÍ -->
+                        <button class="option-btn" onclick="redirectTo('https://tu-enlace-booster-1.com')">
+                            <span>▸</span> Tu texto booster 1
+                        </button>
+                        <button class="option-btn" onclick="redirectTo('https://tu-enlace-booster-2.com')">
+                            <span>▸</span> Tu texto booster 2
+                        </button>
+                        <button class="option-btn" onclick="redirectTo('https://tu-enlace-booster-3.com')">
+                            <span>▸</span> Tu texto booster 3
+                        </button>
+                    </div>
+                    <div class="locked-message" id="boosterLocked" style="display: none;">
+                        🔒 Requiere rol de Booster en el servidor
+                    </div>
+                </div>
+
+                <!-- INVITES Service -->
+                <div class="service-card" id="invitesCard">
+                    <div class="service-icon">🔗</div>
+                    <div class="service-title">INVITES</div>
+                    <div class="service-description">
+                        Sistema de invitaciones
+                    </div>
+                    <div class="service-options" id="invitesOptions">
+                        <!-- PERSONALIZA TUS OPCIONES AQUÍ -->
+                        <button class="option-btn" onclick="redirectTo('https://tu-enlace-invites-1.com')">
+                            <span>▸</span> Tu texto invites 1
+                        </button>
+                        <button class="option-btn" onclick="redirectTo('https://tu-enlace-invites-2.com')">
+                            <span>▸</span> Tu texto invites 2
+                        </button>
+                        <button class="option-btn" onclick="redirectTo('https://tu-enlace-invites-3.com')">
+                            <span>▸</span> Tu texto invites 3
+                        </button>
+                    </div>
+                    <div class="locked-message" id="invitesLocked" style="display: none;">
+                        🔒 Requiere rol específico en el servidor
+                    </div>
+                </div>
+            </div>
+
+            <div class="discord-link">
+                <a href="https://discord.gg/ugtT4RMYGE" target="_blank" class="discord-join-btn">
+                    <span>💬</span>
+                    <span>Discord</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Matrix rain effect
+        const canvas = document.querySelector('.matrix');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン01';
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        const drops = Array(Math.floor(columns)).fill(1);
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(10, 14, 39, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#00ff41';
+            ctx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                const char = chars[Math.floor(Math.random() * chars.length)];
+                ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+
+        setInterval(drawMatrix, 35);
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Authentication System
+        function loginWithDiscord() {
+            // Obtener configuración del servidor
+            const CLIENT_ID = 'TU_CLIENT_ID_AQUI'; // CAMBIAR ESTO
+            const REDIRECT_URI = encodeURIComponent(window.location.origin + '/callback');
+            const SCOPE = 'identify%20guilds%20guilds.members.read';
+            
+            // Redirigir a Discord OAuth
+            const oauthUrl = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=${SCOPE}`;
+            window.location.href = oauthUrl;
+        }
+
+        // Verificar si hay datos de usuario en la URL
+        window.addEventListener('load', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const userParam = urlParams.get('user');
+            
+            if (userParam) {
+                try {
+                    const userData = JSON.parse(decodeURIComponent(userParam));
+                    sessionStorage.setItem('user', JSON.stringify(userData));
+                    showDashboard(userData);
+                    // Limpiar URL
+                    window.history.replaceState({}, document.title, '/');
+                } catch (error) {
+                    console.error('Error parsing user data:', error);
+                }
+            } else {
+                // Verificar sesión existente
+                const savedUser = sessionStorage.getItem('user');
+                if (savedUser) {
+                    showDashboard(JSON.parse(savedUser));
+                }
+            }
+
+            // Mostrar errores si los hay
+            const error = urlParams.get('error');
+            if (error) {
+                alert('Error de autenticación: ' + error);
+            }
+        });
+
+        function showDashboard(userData) {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('dashboard').classList.add('active');
+
+            // Actualizar información del usuario
+            document.getElementById('userName').textContent = `${userData.username}#${userData.discriminator}`;
+            document.getElementById('userAvatar').src = userData.avatar;
+
+            // Verificar roles y bloquear servicios
+            checkRoles(userData);
+        }
+
+        function checkRoles(userData) {
+            const userRoles = userData.roles || [];
+            
+            // CONFIGURA AQUÍ LOS ROLES REQUERIDOS PARA CADA SECCIÓN
+            const requiredRoles = {
+                free: 'free',        // Rol necesario para acceder a FREE
+                booster: 'booster',  // Rol necesario para acceder a BOOSTER
+                invites: 'invites'   // Rol necesario para acceder a INVITES
+            };
+
+            // Mostrar roles del usuario
+            if (userRoles.length > 0) {
+                document.getElementById('userRole').textContent = `Roles: ${userRoles.join(', ')} ✓`;
+            } else {
+                document.getElementById('userRole').textContent = 'Sin roles asignados';
+            }
+
+            // Verificar acceso a FREE
+            if (!userRoles.includes(requiredRoles.free)) {
+                lockService('free', `Requiere rol "${requiredRoles.free}"`);
+            }
+
+            // Verificar acceso a BOOSTER
+            if (!userRoles.includes(requiredRoles.booster)) {
+                lockService('booster', `Requiere rol "${requiredRoles.booster}"`);
+            }
+
+            // Verificar acceso a INVITES
+            if (!userRoles.includes(requiredRoles.invites)) {
+                lockService('invites', `Requiere rol "${requiredRoles.invites}"`);
+            }
+        }
+
+        function lockService(service, message) {
+            const card = document.getElementById(`${service}Card`);
+            const options = document.getElementById(`${service}Options`);
+            const locked = document.getElementById(`${service}Locked`);
+
+            card.classList.add('locked');
+            
+            // Deshabilitar botones
+            const buttons = options.querySelectorAll('button');
+            buttons.forEach(btn => btn.disabled = true);
+
+            // Mostrar mensaje de bloqueo si existe
+            if (locked) {
+                locked.style.display = 'block';
+                locked.textContent = `🔒 ${message}`;
+            }
+        }
+
+        function redirectTo(url) {
+            // Abrir en nueva pestaña
+            window.open(url, '_blank');
+            
+            // Si prefieres que abra en la misma pestaña, usa:
+            // window.location.href = url;
+        }
+
+        function logout() {
+            sessionStorage.removeItem('user');
+            document.getElementById('dashboard').classList.remove('active');
+            document.getElementById('loginScreen').style.display = 'flex';
+            window.location.href = '/';
+        }
+    </script>
+</body>
+  </html>
