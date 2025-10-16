@@ -1,0 +1,22 @@
+{
+  "name": "cyber-panel-discord",
+  "version": "1.0.0",
+  "description": "Panel de Discord con autenticación OAuth",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["discord", "oauth", "panel"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1",
+    "cors": "^2.8.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
